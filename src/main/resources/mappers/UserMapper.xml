@@ -1,0 +1,36 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ex.login.mapper.UserMapper">
+
+    <select id="getUserInfo" parameterType="String" resultType="com.ex.login.model.UserVO">
+        SELECT *
+        FROM
+            tb_user
+        WHERE
+            USER_ID = #{userId}
+    </select>
+
+    <select id="getUserName" parameterType="String" resultType="com.ex.login.model.UserVO">
+        SELECT
+            user_id
+        FROM
+            tb_user
+        WHERE
+             USER_ID = #{user_id}
+    </select>
+
+    <insert id="saveInfo" parameterType="com.ex.login.model.UserVO">
+        INSERT INTO
+        tb_user(
+             user_id,
+             user_pass,
+             loginYn
+        )
+        VALUES(
+            #{userId}
+        ,   #{userPass}
+        ,   #{loginYn}
+        )
+    </insert>
+</mapper>

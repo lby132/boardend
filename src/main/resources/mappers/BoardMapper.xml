@@ -1,0 +1,154 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ex.board.mapper.BoardMapper">
+
+    <sql id="boardSql">
+        idx
+        , title
+        , content
+        , view_cnt
+        , writer
+        , reg_date
+        , board_pw
+    </sql>
+
+    <select id="getBoardListCnt" resultType="int" parameterType="Search">
+        SELECT
+             count(*) as listCnt
+        FROM
+             tb_board
+        <trim prefix="WHERE" prefixOverrides="AND|OR">
+            <if test="keyword != null and keyword != '' ">
+                <if test="searchType=='title'">
+                    AND TITLE like CONCAT('%', #{keyword}, '%')
+                </if>
+                <if test="searchType=='content'">
+                    AND CONTENT like CONCAT('%', #{keyword}, '%')
+                </if>
+                <if test="searchType=='writer'">
+                    AND WRITER like CONCAT('%', #{keyword}, '%')
+                </if>
+            </if>
+        </trim>
+
+    </select>
+
+
+    <select id="selectBoard" resultType="BoardDTO" parameterType="Search">
+        SELECT
+            *
+        FROM
+            (
+                SELECT
+                      @ROWNUM := @ROWNUM + 1 AS rn
+                    , idx
+                    , title
+                    , content
+                    , view_cnt
+                    , writer
+                    , board_pw
+                    , DATE_FORMAT(reg_date, '%Y-%m-%d') as regDate
+                FROM
+                    tb_board,
+                    (SELECT @ROWNUM := 0 ) TMP
+                <trim prefix="WHERE" prefixOverrides="AND|OR">
+                    <if test="searchType=='title' and keyword != null and keyword != '' ">
+                        AND TITLE like CONCAT('%', #{keyword}, '%')
+                    </if>
+                    <if test="searchType=='content' and keyword != null and keyword != '' ">
+                        AND CONTENT like CONCAT('%', #{keyword}, '%')
+                    </if>
+                    <if test="searchType=='writer' and keyword != null and keyword != '' ">
+                        AND WRITER like CONCAT('%', #{keyword}, '%')
+                    </if>
+                </trim>
+                ORDER BY
+                    regDate
+            ) SUB
+        ORDER BY
+            SUB.rn DESC
+        LIMIT
+            #{startList}, #{listSize}
+    </select>
+
+    <select id="selectSearchBoard" resultType="BoardDTO" parameterType="Search">
+        SELECT
+            @rownum := @rownum + 1 as rn
+            , idx
+            , title
+            , content
+            , view_cnt
+            , writer
+            , board_pw
+        FROM
+            tb_board, (SELECT @rownum := 0) T_RN
+        <trim prefix="WHERE" prefixOverrides="AND|OR">
+            <if test="searchType=='title' and keyword != null and keyword != '' ">
+                AND TITLE like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="searchType=='content' and keyword != null and keyword != '' ">
+                AND CONTENT like CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="searchType=='writer' and keyword != null and keyword != '' ">
+                AND WRITER like CONCAT('%', #{keyword}, '%')
+            </if>
+        </trim>
+        ORDER BY rn
+        LIMIT #{startList}, #{listSize}
+    </select>
+
+    <select id="detailSelectBoard" parameterType="int" resultType="BoardDTO">
+        SELECT
+            <include refid="boardSql" />
+        FROM
+            tb_board
+        where
+            idx = #{idx}
+    </select>
+
+    <insert id="insertBoard" parameterType="BoardDTO">
+        INSERT INTO
+            tb_board(TITLE, CONTENT, VIEW_CNT, WRITER, REG_DATE, BOARD_PW, bloginYn)
+        VALUES(
+              #{title}
+            , #{content}
+            , 0
+            , IFNULL(#{writer}, #{userId})
+            , now()
+            , #{boardPw}
+            , IFNULL(#{bloginYn}, 'N')
+        )
+    </insert>
+
+    <update id="updateBoard" parameterType="BoardDTO">
+        UPDATE
+            tb_board
+        SET
+            TITLE = #{title}
+            , CONTENT = #{content}
+            , VIEW_CNT = #{viewCnt}
+            , WRITER = #{writer}
+            , REG_DATE = now()
+        WHERE
+            IDX = #{idx}
+    </update>
+
+    <update id="updateCnt" parameterType="BoardDTO">
+        UPDATE
+            tb_board
+        SET
+            VIEW_CNT = #{viewCnt} + 1
+        WHERE
+            IDX = #{idx}
+    </update>
+
+    <delete id="deleteBoard" parameterType="int">
+        DELETE
+        FROM
+            tb_board
+        WHERE
+            IDX = #{idx}
+    </delete>
+
+</mapper>

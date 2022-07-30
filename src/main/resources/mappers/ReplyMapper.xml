@@ -1,0 +1,109 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ex.board.mapper.ReplyMapper">
+    <sql id="replySql">
+        RID
+        , BID
+        , CONTENT
+        , WRITER
+        , REG_DT
+        , EDIT_DT
+        , DEPTH
+        , PARENT
+        , GROUP_NO
+    </sql>
+
+    <select id="getReplyList" resultType="ReplyVO">
+        SELECT a.*,b.writer as loginMem
+        FROM
+            tb_reply a
+        INNER JOIN
+            tb_board b
+        ON
+            a.bid = b.idx
+        WHERE
+            a.bid = #{idx}
+        ORDER BY
+            REG_DT
+        DESC
+    </select>
+
+    <select id="getReplyRid" resultType="ReplyVO">
+        SELECT
+            RID
+        FROM
+            tb_reply
+        WHERE
+            BID = #{idx}
+    </select>
+
+    <insert id="saveReply" parameterType="ReplyVO">
+        INSERT INTO
+             tb_reply(BID, CONTENT, WRITER ,GROUP_NO ,REG_DT, EDIT_DT)
+        VALUES (
+              #{bid}
+            , #{content}
+            , #{writer}
+            , #{groupNo}
+            , now()
+            , now()
+        )
+    </insert>
+
+    <update id="updateReply" parameterType="ReplyVO">
+        UPDATE
+            tb_reply
+        SET
+               CONTENT = #{content}
+             , EDIT_DT = now()
+        WHERE
+               RID = #{rid}
+    </update>
+
+    <delete id="deleteReply" parameterType="int">
+        DELETE FROM
+             tb_reply
+        WHERE
+            BID = #{bid}
+        AND
+            GROUP_NO = #{groupNo}
+    </delete>
+
+    <insert id="saveReReply" parameterType="ReplyVO">
+        INSERT INTO
+            tb_reply(BID, WRITER, CONTENT, DEPTH, PARENT, GROUP_NO,REG_DT, EDIT_DT)
+        VALUES
+        (
+            #{bid}
+        ,   #{writer}
+        ,   #{content}
+        ,   #{depth}
+        ,   #{parent}
+        ,   #{groupNo}
+        ,   now()
+        ,   now()
+        )
+    </insert>
+
+    <select id="getReReply" resultType="ReplyVO">
+        SELECT
+            <include refid="replySql"/>
+        FROM
+            tb_reply
+        WHERE
+            parent = #{rid}
+        AND
+            parent is not null
+    </select>
+
+    <delete id="reReplyDelete" parameterType="ReplyVO">
+        DELETE FROM
+            tb_reply
+        WHERE
+            depth = #{depth}
+        AND
+            rid = #{rid}
+    </delete>
+
+</mapper>

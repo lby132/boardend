@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="www.thymeleaf.org">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<style>
+input[type=text], select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input[type=submit] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=button] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+
+input[type=button]:hover {
+  background-color: #45a049;
+}
+
+div {
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 20px;
+}
+</style>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+    showReplyList();
+});
+
+function modify_fn(idx){
+     var path = "/board/getBoardForm";
+     url = path + "?idx=" + idx;
+     location.href = url;
+}
+
+
+$(document).ready(function(){
+
+    $('#cancel').on("click", function(){
+        var url = "/board/getBoardList";
+        location.href = url;
+    });
+
+});
+
+
+function showReplyList(){
+        var url = "/restBoard/getReqlyList";
+        var paramData = {"idx" : "${boardDetail.idx}"};
+        $.ajax({
+        type: 'POST',
+        url: url,
+        data: paramData,
+        dataType: 'json',
+        success: function(result) {
+            var htmls = "";
+            if(result.length < 1){
+                 htmls.push("등록된 댓글이 없습니다.");
+            } else {
+                 $(result).each(function(){
+                 htmls += '<div class="media text-muted pt-3" id="rid' + this.rid + '">';
+                 htmls += '<svg class="bd-placeholder-img mr-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder:32x32">';
+                 htmls += '<title>Placeholder</title>';
+                 htmls += '<rect width="100%" height="100%" fill="#007bff"></rect>';
+                 htmls += '<text x="50%" fill="#007bff" dy=".3em">32x32</text>';
+                 htmls += '</svg>';
+                 htmls += '<p class="media-body pb-3 mb-0 small lh-125 border-bottom horder-gray">';
+                 htmls += '<span class="d-block">';
+                 htmls += '<strong class="text-gray-dark">' + this.reg_id + '</strong>';
+                 htmls += '<span style="padding-left: 7px; font-size: 9pt">';
+                 htmls += '<a href="javascript:void(0)" onclick="fn_editReply(' + this.rid + ', \'' + this.reg_id + '\', \'' + this.content + '\' )" style="padding-right:5px">수정</a>';
+                 htmls += '<a href="javascript:void(0)" onclick="fn_deleteReply(' + this.rid + ')" >삭제</a>';
+                 htmls += '</span>';
+                 htmls += '</span>';
+                 htmls += this.content;
+                 htmls += '</p>';
+                 htmls += '</div>';
+            });
+
+            }
+                $("#replyList").html(htmls);
+        }
+    });
+}
+
+
+</script>
+
+<head>
+    <meta charset="UTF-8">
+    <title>board Detail</title>
+</head>
+<body>
+<div>
+    <table>
+        <label for="idx">글번호</label>
+        <input type="text" id="idx" name="idx" th:value="${boardDetail.idx}" disabled>
+
+        <label for="content">내용</label>
+        <input type="text" id="content" name="content" th:value="${boardDetail.content}" disabled>
+
+        <label for="content">작성자</label>
+        <input type="text" id="writer" name="content" th:value="${boardDetail.writer}" disabled>
+
+        <input type="button" th:onclick="modify_fn(document.getElementById('idx').value)" value="수정">
+        <input type="button" id="cancel" value="취소">
+    </table>
+
+</div>
+<br/>
+<div>
+    <form th:action="@{/replyBoard/saveReplay}" method="post">
+        <input type="hidden" th:value="${letil.idx}">
+        <label for="content">내용</label><br/>
+        <textarea type="text" id="content" name="content" th:text="${replyVO}"></textarea>
+<br/>
+        <label for="content">댓글 작성자</label>
+        <input type="text" id="writer" name="content" th:text="${replyVO}">
+
+        <input type="button" th:onclick="modify_fn(document.getElementById('idx').value)" value="댓글 저장">
+    </form>
+
+    <div style="padding-top: 10px">
+        <h6 class="border-bottom pb-2 mb-0">Reply list</h6>
+        <div id="replyList"></div>
+    </div>
+
+</div>
+</body>
+</html>

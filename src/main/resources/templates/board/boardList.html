@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="www.thymeleaf.org">
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+<style>
+.write {
+    width: 200px;
+    border: 1px solid #b8064d;
+    background-color: #f8e1eb;
+    position: absolute;
+    top: 10px;
+    right: 100px;
+    color:#b8064d;
+    padding-left:10px
+}
+
+.class1 {
+color: red;
+}
+
+.class1 active:active {
+    color: red;
+}
+
+#modal .close{
+    position:absolute;
+    top:4px;
+    right:4px;
+    font-size:20px;
+    border:0;
+    background-color: #fff;
+}
+
+#modal .close:hover,
+#modal .close:focus {
+color : #000;
+text-decoration: none;
+cursor :pointer;
+}
+
+#modal {
+  display:none;
+  width:500px;
+  height:100px;
+  position:absolute;
+  top:50%;
+  left:50%;
+  margin:-250px 0 0 -250px;
+  background:#eee;
+  z-index: 2;
+}
+
+#modal{
+  display : none;
+}
+
+
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>Board List</title>
+</head>
+
+<script type="text/javascript" th:inline="javascript">
+
+var titleNum = 0;
+var pageNum = 0;
+
+$(function(){
+
+    var searchType = [[${search}]];
+    if(searchType != null && searchType != undefined) {
+        $("#searchType").val(searchType);
+    }
+       $("#keyword").keyup(function (event) {
+            regexp = /[ \{\}\[\]\/?.,;:|\)*~`!^\-_+┼<>@\#$%&\'\"\\\(\=]/gi;
+            v = $(this).val();
+            if (regexp.test(v)) {
+                alert("특수문자 사용 금지.");
+                $(this).val(v.replace(regexp, ''));
+            }
+        });
+});
+
+
+function fn_prev(page, range, rangeSize, searchType, keyword) {
+    var page = ((range - 2) * rangeSize) + 1;
+    var range = range - 1;
+
+    var url = "/board/getBoardList";
+    url = url + "?page=" + page;
+    url = url + "&range=" + range;
+    url = url + "&searchType=" + searchType;
+
+    if(keyword != null) {
+        url = url + "&keyword=" + keyword;
+    }
+
+    location.href = url;
+}
+
+function fn_pageInfo(page, range, searchType, keyword) {
+
+    var url = "/board/getBoardList";
+    url = url + "?page=" + page;
+    url = url + "&range=" + range;
+    url = url + "&searchType=" + searchType;
+
+    if(keyword != null) {
+        url = url + "&keyword=" + keyword;
+    }
+    <!--/*-->
+    url = url + "&searchType=" + $('#searchType').val();
+    url = url + "&keyword=" + $('#keyword').val();
+    <!--*/-->
+
+    location.href = url;
+}
+
+function fn_next(page, range, rangeSize, searchType, keyword) {
+    var page = parseInt((range * rangeSize)) + 1;
+    var range = parseInt(range) + 1;
+
+    var url = "/board/getBoardList";
+    url = url + "?page=" + page;
+    url = url + "&range=" + range;
+    url = url + "&searchType=" + searchType;
+
+    if(keyword != null) {
+        url = url + "&keyword=" + keyword;
+    }
+
+    location.href = url;
+}
+
+$(document).on('click', '#btnSearch', function(){
+    var url = "/board/getBoardList";
+    url = url + "?searchType=" + $('#searchType').val();
+    url = url + "&keyword=" + $('#keyword').val();
+    location.href = url;
+});
+
+function fn_title(idx, page) {
+    titleNum = idx;
+    pageNum = page;
+    var modal = document.getElementById('modal');
+        modal.style.display = 'block';
+          $('#pwd').val('')
+          $('#pwd').focus();
+
+}
+
+function fn_List() {
+  var url = "/board/getBoardList";
+  location.href = url;
+}
+
+$(document).on('click','#btnCheck',function(){
+
+    var passNum = document.getElementById('pwd').value;
+
+    var hiddenVal = document.getElementById('valHide').value;
+    console.log('hiddenVal = ' + hiddenVal)
+
+    if (passNum === "") {
+        alert('비밀번호를 입력해주세요');
+        return false;
+    }
+
+    var url = "/board/pwCheck";
+    var param = JSON.stringify({"idx": titleNum, "boardPw": passNum});
+    var headers = {"Content-Type": "application/json"};
+    var uri = "getBoardDetail/" + titleNum + "/" + pageNum + "?hide=" + hiddenVal;
+    console.log(`uri = ${uri}`);
+    $.ajax({
+        url: url,
+        type: "post",
+        headers: headers,
+        dataType: "json",
+        data: param,
+        success: function(result) {
+            console.log(result.pwCheckOk);
+            if (result.pwCheckOk) {
+                location.href = uri;
+            } else {
+                alert('비밀번호가 맞지 않습니다.');
+                return false;
+            }
+
+        }
+    });
+
+});
+
+
+$(document).on('click','#btnClose',function(){
+console.log('close')
+     var close = document.getElementById('modal');
+     close.style.display = 'none';
+});
+
+</script>
+
+<body>
+<H3>Board List</H3>
+<div>
+    <th:block th:if="${session.LOGIN_MEMBER != null}">
+        <div><p th:text="|${session.LOGIN_MEMBER} 님 반갑습니다.|">반갑습니다.</p></div>
+        <div><a th:href="@{/login/logout}">로그아웃</a></div>
+    </th:block>
+    <th:block th:unless="${session.LOGIN_MEMBER != null}">
+        <div><p th:text="|로그인이 안된 사용자 입니다.|">세션없음</p></div>
+        <div><a th:href="@{/login/loginPage}">로그인</a></div>
+    </th:block>
+</div>
+<table style="width:100%">
+    <tr style="background-color:lightgrey">
+        <th>게시글번호</th>
+        <th>제목</th>
+        <th>작성자</th>
+        <th>조회수</th>
+        <th>작성일</th>
+    </tr>
+    <tr th:each="list : ${boardList}">
+            <td th:text="${list.rn}">게시글번호</td>
+            <th:block th:if="${session.LOGIN_MEMBER} != null">
+                <td><a th:href="@{/board/getBoardDetail/{idx}/{page}(idx = ${list.idx},page = ${page})}" th:text="${list.title}">제목</a></td>
+            </th:block>
+            <th:block th:unless="${session.LOGIN_MEMBER} != null">
+                <td><a href="#" th:onclick="fn_title([[${list.idx}]],[[${page}]])" th:text="${list.title}" id="title">제목</a></td>
+            </th:block>
+            <td th:text="${list.writer}">작성자</td>
+            <td th:text="${list.viewCnt}">조회수</td>
+            <td th:text="${list.regDate}">작성일</td>
+    </tr>
+
+    <th:block th:if="${message == null}">
+    <div id="pageInfoBox">
+        <ul class="pageInfo">
+            <td th:if="${pageInfo.isPrev()}">
+                <li class="page-item">
+                    <a class="page-link" href="#" th:onclick="fn_prev([[${pageInfo.page}]],[[${pageInfo.range}]],[[${pageInfo.rangeSize}]],[[${pageInfo.searchType}]],[[${pageInfo.keyword}]]);">Previous</a>
+                </li>
+            </td>
+            <td th:each="num : ${#numbers.sequence(pageInfo.startPage, pageInfo.endPage)}">
+                <li class="class1 active" th:classappend="${pageInfo.startPage == num} ? 'active' : ''">
+                    <a href="#" th:onclick="fn_pageInfo([[${num}]],[[${pageInfo.range}]],[[${pageInfo.searchType}]],[[${pageInfo.keyword}]]);" th:text="${num}"></a>
+                </li>
+            <td th:if="${pageInfo.isNext()}">
+                <li><a href="#" th:onclick="fn_next([[${pageInfo.page}]],[[${pageInfo.range}]],[[${pageInfo.rangeSize}]],[[${pageInfo.searchType}]],[[${pageInfo.keyword}]]);">Next</a></li>
+            </td>
+        </ul>
+    </div>
+    </th:block>
+</table>
+<th:block th:unless="${message == null}">
+    <h3 th:text="${message}"></h3>
+</th:block>
+
+
+<div class="write">
+    <th:block th:if="${session.LOGIN_MEMBER != null}">
+        <a th:href="@{/board/getBoardForm(gubun = ${session.LOGIN_MEMBER})}" th:text="글쓰기"></a>
+    </th:block>
+    <th:block th:unless="${session.LOGIN_MEMBER != null}">
+        <a th:href="@{/board/getBoardForm}" th:text="글쓰기"></a>
+    </th:block>
+</div>
+<div padding="100px;">
+    <div class="w100" style="padding-right:10px">
+        <select class="form-control form-control-sm" name="searchType" id="searchType">
+                <option value="title">title</option>
+                <option value="content">content</option>
+                <option value="writer">writer</option>
+        </select>
+    </div>
+
+    <div style="padding-right:10px">
+       <input type="text" name="keyword" id="keyword" th:value="${keyword}">
+    </div>
+    <div>
+        <button name="btnSearch" id="btnSearch">검색</button>
+    </div>
+</div>
+<br/><br/><br/>
+<div>
+    <button type="button" name="btnList" id="btnList" th:onclick="fn_List()">첫페이지로 이동</button>
+</div>
+
+<div id='modal'>
+    <div id='content'>
+        <input type="button" value="X" class="close" id="btnClose"/>
+        <label>암호를 입력하세요</label><br/>
+        <input type='password' id='pwd' value="" />
+        <input type='hidden' id='valHide' value="c" />
+        <input type='button' value='check' id='btnCheck' />
+    </div>
+</div>
+
+</body>
+</html>

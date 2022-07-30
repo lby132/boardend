@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="www.thymeleaf.org">
+
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+
+<style>
+input[type=text], select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input[type=submit] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=button] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+
+input[type=button]:hover {
+  background-color: #45a049;
+}
+
+div {
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 20px;
+}
+</style>
+
+<script th:inline="javascript">
+$(document).ready(function(){
+
+  $('#cancel').on("click", function(){
+      var url = "/board/getBoardList";
+      location.href = url;
+  });
+
+});
+
+
+</script>
+
+<head>
+  <meta charset="UTF-8">
+  <title>boardForm</title>
+</head>
+<body>
+<div>
+
+  <form th:action="@{/board/insertBoard}" method="post">
+    <th:block th:if="${session.LOGIN_MEMBER != null}">
+      <label for="title">제목</label>
+      <input type="text" id="title" name="title" required>
+
+      <label for="content">내용</label>
+      <input type="text" id="content" name="content" required>
+
+      <input type="hidden" id="writer" name="writer" th:value="${userVO.userId}">
+      <input type="hidden" id="loginYn" name="loginYn" th:value="${userVO.loginYn}">
+
+      <input type="submit" id="save" value="저장">
+    </th:block>
+    <th:block th:unless="${session.LOGIN_MEMBER != null}">
+      <label for="title">제목</label>
+      <input type="text" id="title2" name="title" required>
+      <br/>
+      <label for="content">내용</label><br/>
+      <textarea rows="10" cols="180" type="text" id="content2" name="content" required></textarea>
+      <br/>
+      <label for="writer2">작성자</label>
+      <input type="text" id="writer2" name="writer" required>
+      <br/>
+      <label for="content">글 비밀번호</label><br/>
+      <input type="password" id="boardPw" name="boardPw" required>
+      <br/>
+      <input type="submit" id="save2" value="저장">
+    </th:block>
+  </form>
+
+  <input type="button" id="cancel" value="취소">
+
+</div>
+</body>
+</html>

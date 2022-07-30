@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="www.thymeleaf.org">
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+<style>
+input[type=text], select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input[type=submit] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=button] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+
+input[type=button]:hover {
+  background-color: #45a049;
+}
+
+div {
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 20px;
+}
+
+</style>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+    history.replaceState({}, null, location.pathname);
+    showReplyList();
+});
+
+$(document).on("click", "#cancel",function(){
+       var page = '[[${page}]]';
+       console.log('page = ' + page)
+       var url = "/board/getBoardList";
+       var uri = url + "?page=" + page;
+
+       console.log(`url = ${uri}`);
+
+       location.href = uri;
+});
+
+function modify_fn(idx){
+     var path = "/board/getBoardForm";
+     url = path + "?idx=" + idx;
+     location.href = url;
+}
+
+function loginDelete_fn(idx) {
+    var pre = '[[${#request.getHeader('Referer')}]]';
+    var url = "/board/deleteBoard/" + idx;
+    var uri = "/board/boardDelete/" + idx;
+    console.log(`url = ${url}`);
+    $.get(url, function(data){
+       console.log('deleteResult = ' + data.result)
+       if (data.result) {
+          if (confirm("댓글이 있습니다. 그래도 삭제 하시겠습니까?") == true) {
+            location.href = uri;
+          } else {
+            return false;
+          }
+
+       } else if (confirm("삭제 하시겠습니까?") == true) {
+          location.href = pre;
+       }
+    });
+}
+
+function delete_fn(idx, pw){
+
+    var pass1 = prompt('암호를 입력하십시오','암호를 입력하세요');
+
+    if(pass1) {
+       if (pass1 == pw) {
+            var path = "/board/deleteBoard";
+            url = path + "/" + idx;
+            location.href = url;
+        } else {
+            alert('비밀번호가 틀렸습니다.');
+            return ;
+        }
+    }
+
+}
+
+function showReplyList(){
+        var url = "/replyBoard/getReplyList";
+        var paramData = {"bid" : '[[${boardDetail.idx}]]'};
+
+        $.ajax({
+        type: 'GET',
+        url: url,
+        data: paramData,
+        dataType: 'json',
+        success: function(result) {
+
+            let htmls = "";
+
+            if(result.length < 1){
+                 htmls += '<text>등록된 댓글이 없습니다.</text>';
+                 $("#replyList").html(htmls);
+            } else {
+            result = result.reverse();
+                $(result).each(function(i){
+                    try{
+                        if( result[i].parent === 0){
+                        console.log('1')
+
+                             htmls += '<div class="media text-muted pt-3" id="rid' + this.rid + '">';
+                             htmls += '<svg class="bd-placeholder-img mr-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder:32x32">';
+                             htmls += '<title>Placeholder</title>';
+                             htmls += '<rect width="100%" height="100%" fill="#007bff"></rect>';
+                             htmls += '<text x="50%" fill="#007bff" dy=".3em">32x32</text>';
+                             htmls += '</svg>';
+                             htmls += '<p class="media-body pb-3 mb-0 small lh-125 border-bottom horder-gray reply-last' + this.rid + ' ">'; <!--/* 댓글 최상단 */-->
+                             htmls += '<span class="d-block">';
+                             htmls += '<strong class="text-gray-dark">' + this.writer + '</strong></br>';
+                             htmls += this.content;
+                             htmls += '<span style="padding-left: 7px; font-size: 9pt">';
+                             htmls += '<a href="javascript:void(0)" onclick="fn_reReply(' + this.rid + ', \'' + this.groupNo + '\', \'' + this.depth + '\')" style="padding-right:5px" id="dap">답글</a>';
+                             htmls += '<a href="javascript:void(0)" onclick="fn_editReply(' + this.rid + ', \'' + this.reg_id + '\', \'' + this.content + '\', \'' + this.writer + '\' )" style="padding-right:5px" id="dapUpdate">수정</a>';
+                             htmls += '<a href="javascript:void(0)" onclick="fn_deleteReply(' + this.bid + ', \'' + this.groupNo + '\', \'' + this.rid + '\')" id="dapDelete">삭제</a>';
+                             htmls += '</span>';
+                             htmls += '</span>';
+                             htmls += '</p>'; <!--/* 댓글 최상단 */-->
+                             htmls += '</div>';
+
+                             $("#replyList").html(htmls);
+                        }else{
+                        console.log('2')
+
+                             htmls = "";
+                             htmls += '<div id="rid' + this.rid + '">';
+                             htmls += '<svg class="bd-placeholder-img mr-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder:32x32">';
+                             htmls += '<title>Placeholder</title>';
+                             htmls += '<rect width="100%" height="100%" fill="#007bff"></rect>';
+                             htmls += '<text x="50%" fill="#007bff" dy=".3em">32x32</text>';
+                             htmls += '</svg>';
+                             htmls += '<p class="media-body pb-3 mb-0 small lh-125 border-bottom horder-gray reply-last' + this.rid + ' ">';
+                             htmls += '<span class="d-block">';
+                             htmls += '<strong class="text-gray-dark" id="logMem">' + this.writer + '</strong></br>';
+                             htmls += this.content;
+                             htmls += '<span style="padding-left: 7px; font-size: 9pt">';
+                             htmls += '<a href="javascript:void(0)" onclick="fn_reReply(' + this.rid + ', \'' + this.groupNo + '\', \'' + this.depth + '\')" style="padding-right:5px" id="dap2">답글</a>';
+                             htmls += '<a href="javascript:void(0)" onclick="fn_editReply(' + this.rid + ', \'' + this.reg_id + '\', \'' + this.content + '\', \'' + this.writer + '\' )" style="padding-right:5px" id="dapUpdate">수정</a>';
+                             htmls += '<a href="javascript:void(0)" onclick="reReplyDelete(' + this.rid + ', \'' + this.depth + '\', \'' + this.groupNo + '\')" id="dapDelete">삭제</a>';
+                             htmls += '</span>';
+                             htmls += '</span>';
+                             htmls += '</p>';
+                             htmls += '</div>';
+
+                             if (this.depth === 1 || this.depth === 2) {
+                                $('#dap2').remove();
+                             }
+
+                             $(".reply-last"+this.parent).append(htmls);
+                        }
+                    }catch(ex){
+                        console.log("reply runtime error >>>");
+                    }
+
+                });
+            }
+        }
+
+    });
+}
+
+
+$(document).on('click','#btnSave',function(){
+
+    contVal = $('#cont').val();
+    if (contVal === "" || contVal === null) {
+        alert('내용을 입력해주세요');
+        return false;
+    }
+    if ($('#reWriter').val()) {
+        wriVar = $('#reWriter').val();
+    } else {
+        wriVar = $('#write2').val();
+    }
+
+    var url = "/replyBoard/saveReply";
+    var paramData = JSON.stringify({"content": contVal
+                                    , "writer": wriVar
+                                    , "bid": '[[${boardDetail.idx}]]'
+    });
+
+    var headers = {"Content-Type" : "application/json", "X-HTTP-Method-Override" : "POST"};
+    $.ajax({
+        url: url
+        , headers : headers
+        , data : paramData
+        , type : 'POST'
+        , dataType : 'json'
+        , success: function(result){
+            $('#cont').val('');
+            showReplyList();
+        }
+        , error: function(error){
+         console.log("에러 : " + error);
+        }
+    });
+
+});
+
+
+function fn_editReply(rid, reg_id, content, writer){
+    var htmls = "";
+        htmls += '<div class="media text-muted pt-3" id="rid' + rid + '">';
+        htmls += '<svg class="bd-placeholder-img mr-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder:32x32">';
+        htmls += '<title>Placeholder</title>';
+        htmls += '<rect width="100%" height="100%" fill="#007bff"></rect>';
+        htmls += '<text x="50%" fill="#007bff" dy=".3em">32x32</text>';
+        htmls += '</svg>';
+        htmls += '<p class="media-body pb-3 mb-0 small lh-125 border-bottom horder-gray">';
+        htmls += '<span class="d-block">';
+        htmls += '<strong class="text-gray-dark">' + writer + '</strong>';
+        htmls += '<span style="padding-left: 7px; font-size: 9pt">';
+        htmls += '<a href="javascript:void(0)" onclick="fn_updateReply(' + rid + ')" style="padding-right:5px">저장</a>';
+        htmls += '<a href="javascript:void(0)" onClick="showReplyList()">취소<a>';
+        htmls += '</span>';
+        htmls += '</span>';
+        htmls += '<textarea name="editContent" id="editContent" class="form-control" rows="3">';
+        htmls += content;
+        htmls += '</textarea>';
+        htmls += '</p>';
+        htmls += '</div>';
+        $('#rid' + rid).replaceWith(htmls);
+        $('#rid' + rid + ' #editContent').focus();
+}
+
+
+
+function fn_deleteReply(bid, grNo, rid) {
+
+    var pre = '[[${#request.getHeader('Referer')}]]';
+    var url = "/replyBoard/replyDelete";
+    var uri = "/replyBoard/reDelete";
+    var param = JSON.stringify({"bid":bid, "groupNo":grNo, "rid":rid});
+    var headers = {"Content-Type" : "application/json"}
+    var len = $('#replyList').children().length;
+
+    $.ajax({
+        type: 'post',
+        url: url,
+        data: param,
+        headers: headers,
+        dataType: 'json',
+        success: function(data) {
+
+            if (data.result) {
+               if (confirm("댓글이 있습니다. 그래도 삭제 하시겠습니까?") == true) {
+                    $.ajax({
+                        type: 'post',
+                        url: uri,
+                        data: param,
+                        headers: headers,
+                        dataType: 'json',
+                        success: function(data) {
+                            location.reload();
+                        }
+                        });
+               } else {
+                    return false;
+               }
+            } else if (confirm("삭제 하시겠습니까?") == true) {
+                $.ajax({
+                        type: 'post',
+                        url: uri,
+                        data: param,
+                        headers: headers,
+                        dataType: 'json',
+                        success: function(data) {
+                            location.reload();
+                        }
+                        });
+            }
+
+            if(len === 1) {
+                location.reload();
+            }
+            showReplyList()
+        }
+        , error: function(error){
+           console.log("에러 : " + error);
+        }
+    });
+
+}
+
+function fn_reReply(rid, grNo, depth) {
+
+     var d = document.getElementById('dap');
+     var u = document.getElementById('dapUpdate');
+     var dd = document.getElementById('dapDelete');
+
+     d.remove();
+     u.remove();
+     dd.remove();
+
+     var save = document.createElement('a');
+     save.setAttribute('href', 'javascript:void(0)');
+     save.setAttribute('onclick', 'fn_reSave(' + rid + ',\'' + grNo + '\', \'' + depth + '\')');
+     save.setAttribute('id', 'reSave');
+     save.setAttribute('style', 'padding-right:5px');
+     save.innerText = "저장";
+
+     var cancel = document.createElement('a');
+     cancel.setAttribute('href', 'javascript:void(0)');
+     cancel.setAttribute('onclick', 'showReplyList()');
+     cancel.setAttribute('id', 'reCancel');
+     cancel.setAttribute('style', 'padding-right:5px');
+     cancel.innerText = "취소";
+
+     var dom = document.getElementById('rid'+rid);
+
+     var t = document.createElement('textarea');
+     t.setAttribute('name','editContent');
+     t.setAttribute('id','editContent');
+     t.setAttribute('class','form-control');
+     t.setAttribute('rows','3');
+
+    var logYn = '[[${session.LOGIN_MEMBER}]]';
+
+    if (logYn === "" || logYn === null) {
+
+         var comW = $('#reWriter').val();
+         var i = document.createElement('input');
+         i.setAttribute('name','comWriter');
+         i.setAttribute('id','comWriter');
+         i.setAttribute('type','hidden');
+         i.setAttribute('value', comW);
+
+         dom.appendChild(i);
+    }
+
+     dom.appendChild(t);
+     dom.appendChild(save);
+     dom.appendChild(cancel);
+
+}
+
+function fn_updateReply(rid) {
+
+    var content = $('#editContent').val();
+
+    url = "/replyBoard/replyUpdate";
+    var paramData = JSON.stringify({"rid" : rid, "content" : content});
+
+    var headers = {"Content-Type" : "application/json"}
+
+    $.ajax({
+        type: 'POST',
+        headers: headers,
+        url: url,
+        data: paramData,
+        dataType: 'json',
+        success: function(result){
+            showReplyList();
+            console.log("성공: " + result);
+        }
+        , error: function(error) {
+            console.log("에러: " + error);
+        }
+    });
+}
+
+
+function fn_reSave(rid, grNo, depth) {
+
+    if ($('#comWriter').val()) {
+        wriVar = $('#comWriter').val();
+    } else {
+        wriVar = $('#write2').val();
+    }
+
+    var url = "/replyBoard/saveReReply";
+    var content = $('#editContent').val();
+    var headers = {"Content-Type" : "application/json"};
+    var paramData = JSON.stringify({"bid": '[[${boardDetail.idx}]]', "rid":rid, "parent":rid, "content":content, "groupNo":grNo, "writer":wriVar});
+
+    $.ajax({
+        type: 'POST',
+        url: url,
+        headers: headers,
+        data: paramData,
+        dataType: 'json',
+        success: function(result) {
+
+            var t = document.getElementById('editContent');
+            var s = document.getElementById('reSave');
+            var c = document.getElementById('reCancel');
+
+            t.remove();
+            s.remove();
+            c.remove();
+
+            listRePly(rid);
+        }
+    });
+}
+
+function listRePly(rid){
+
+    var url = "/replyBoard/getReReply";
+    var param = {"rid":rid};
+
+    $.ajax({
+        url: url,
+        type: "get",
+        dataType: "json",
+        data: param,
+        success: function(result){
+
+            showReplyList();
+        }
+    });
+
+}
+
+function reReplyDelete(rid, depth) {
+
+    var uri = "/replyBoard/reReDelete";
+    var url = "/replyBoard/reReplyDelete";
+    var paramData = JSON.stringify({"rid": rid, "depth": depth});
+    var headers = {"Content-Type" : "application/json"}
+
+    $.ajax({
+        url: url,
+        type: 'post',
+        data: paramData,
+        dataType: 'json',
+        contentType: 'application/json',
+        success: function(data) {
+        console.log('result = ' + data.result)
+
+            if (data.result) {
+               if (confirm("댓글이 있습니다. 그래도 삭제 하시겠습니까?") == true) {
+                    $.ajax({
+                        type: 'post',
+                        url: uri,
+                        data: paramData,
+                        headers: headers,
+                        dataType: 'json',
+                        success: function(data) {
+                            showReplyList();
+                        }
+                        });
+               } else {
+                    return false;
+               }
+            } else if (confirm("삭제 하시겠습니까?") == true) {
+                $.ajax({
+                        type: 'post',
+                        url: uri,
+                        data: paramData,
+                        headers: headers,
+                        dataType: 'json',
+                        success: function(data) {
+                            showReplyList();
+                        }
+                        });
+            }
+
+            console.log('성공')
+
+        }
+    });
+}
+
+
+</script>
+
+<head>
+    <meta charset="UTF-8">
+    <title>board Detail</title>
+</head>
+<body>
+<div>
+    <table>
+        <strong><label for="idx">● 글번호</label></strong><br/>
+        <input type="text" id="idx" name="idx" th:value="${boardDetail.idx}" disabled/>
+
+        <strong><label for="content">● 내용</label></strong><br/>
+        <div type="text" id="content" name="content" th:utext="${boardDetail.content}" required></div>
+
+        <strong><label for="content">● 작성자</label></strong><br/>
+        <div type="text" id="writer" name="content" th:text="${boardDetail.writer}" disabled></div>
+        <th:block th:if="${session.LOGIN_MEMBER} != null and ${session.LOGIN_MEMBER} == ${boardDetail.writer}">
+            <input type="button" th:onclick="modify_fn(document.getElementById('idx').value)" value="수정">
+            <input type="button" th:onclick="loginDelete_fn(document.getElementById('idx').value)" value="삭제">
+        </th:block>
+        <th:block th:if="${session.LOGIN_MEMBER} == null and ${boardDetail.boardPw} != null">
+            <input type="button" th:onclick="modify_fn(document.getElementById('idx').value)" value="수정">
+            <input type="button" th:onclick="loginDelete_fn(document.getElementById('idx').value)" value="삭제">
+        </th:block>
+        <input type="button" id="cancel" value="취소">
+    </table>
+
+</div>
+<br/>
+<div>
+    <table>
+        <label for="cont">내용</label><br/>
+        <input type="text" id="cont" name="content" th:value="${replyVO.content}" />
+        <br/>
+        <th:block th:if="${session.LOGIN_MEMBER == null}">
+            <label for="writer">댓글 작성자</label><br/>
+            <input type="text" id="reWriter" name="writer" th:value="${boardDetail.writer}" disabled/>
+        </th:block>
+        <th:block th:unless="${session.LOGIN_MEMBER == null}">
+            <input type="hidden" id="write2" th:value="${session.LOGIN_MEMBER}" required/>
+        </th:block>
+        <input type="button" id="btnSave" value="댓글 저장">
+
+        <div style="padding-top: 10px">
+            <h6 class="border-bottom pb-2 mb-0">Reply list</h6>
+            <div id="replyList" name="replyList"></div>
+        </div>
+    </table>
+</div>
+</body>
+</html>

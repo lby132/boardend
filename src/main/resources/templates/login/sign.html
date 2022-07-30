@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="www.thymeleaf.org">
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+
+<style>
+
+</style>
+<head>
+
+  <meta charset="UTF-8">
+  <title>sign</title>
+</head>
+
+<script>
+
+    $(document).on('click','#submit', function(){
+
+        let id = $('#userId').val();
+        let pass = $('#userPass').val();
+
+        url1 = "/login/saveUser";
+        url = url1 + "?userId=" + id + "?userPass=" + pass;
+
+        if(id === "" || pass === "") {
+         alert("아이디와 비밀번호 입력은 필수 입니다.");
+
+        }
+
+    });
+
+</script>
+
+<body>
+<p th:text="${errorMsg}"></p>
+
+<form th:action="@{/login/saveUser}" method="post">
+  아이디 : <input type="text" id="userId" name="userId">
+  비밀번호 : <input type="password" id="userPass" name="userPass">
+  <input type="hidden" name="loginYn">
+  <input type="submit" id="submit">
+</form>
+<a th:href="@{/login/loginPage}" th:text="|로그인 페이지|"></a>
+</body>
+</html>

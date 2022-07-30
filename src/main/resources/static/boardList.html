@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="www.thymeleaf.org">
+<style>
+    .write {
+        width: 200px;
+        border: 1px solid #b8064d;
+        background-color: #f8e1eb;
+        position: absolute;
+        top: 10px;
+        right: 100px;
+        color:#b8064d;
+        padding-left:10px
+}
+
+.class1 {
+color: red;
+}
+
+.class1 active:active {
+    color: red;
+}
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>Board List</title>
+</head>
+
+<script>
+function fn_prev(page, range, rangeSize, searchType, keyword) {
+    var page = ((range - 2) * rangeSize) + 1;
+    var range = range - 1;
+
+    var url = "/board/getBoardList";
+    url = url + "?page=" + page;
+    url = url + "&range=" + range;
+    url = url + "&searchType=" + searchType;
+    url = url + "&keyword=" + keyword;
+    location.href = url;
+}
+
+function fn_pageInfo(page, range, rangeSize, keyword) {
+    var url = "/board/getBoardList";
+    url = url + "?page=" + page;
+    url = url + "&range=" + range;
+    url = url + "&searchType=" + $('#searchType').val();
+    url = url + "&keyword=" + keyword;
+    location.href = url;
+}
+
+function fn_next(page, range, rangeSize, keyword) {
+    var page = parseInt((range * rangeSize)) + 1;
+    var range = parseInt(range) + 1;
+
+    var url = "/board/getBoardList";
+    url = url + "?page=" + page;
+    url = url + "&range=" + range;
+    url = url + "&searchType=" + $('#searchType').val();
+    url = url + "&keyword=" + keyword;
+    location.href = url;
+}
+</script>
+
+<body>
+<H3>Board List</H3>
+<table style="width:100%">
+    <tr style="background-color:lightgrey">
+        <th>게시글번호</th>
+        <th>제목</th>
+        <th>작성자</th>
+        <th>조회수</th>
+        <th>작성일</th>
+    </tr>
+    <tr th:each="list : ${boardList}">
+        <td th:text="${list.idx}">게시글번호</td>
+        <td><a th:href="@{/board/getletil/{idx}(idx = ${list.idx})}" th:text="${list.title}">제목</a></td>
+        <td th:text="${list.writer}">작성자</td>
+        <td th:text="${list.viewCnt}">조회수</td>
+        <td th:text="${list.regDate}">작성일</td>
+        <td><a th:href="@{/board/deleteBoard/{idx}(idx = ${list.idx})}">삭제</a></td>
+    </tr>
+
+    <div id="pageInfoBox">
+        <ul class="pageInfo">
+            <td th:if="${pageInfo.isPrev()}">
+                <li class="page-item">
+                    <a class="page-link" href="#" th:onclick="fn_prev([[${pageInfo.page}]],[[${pageInfo.range}]],[[${pageInfo.rangeSize}]],[[${pageInfo.searchType}]],[[${pageInfo.keyword}]]);">Previous</a>
+                </li>
+            </td>
+            <td th:each="num : ${#numbers.sequence(pageInfo.startPage, pageInfo.endPage)}">
+                <li class="class1 active" th:classappend="${pageInfo.startPage == num} ? 'active' : ''">
+                    <a href="#" th:onclick="fn_pageInfo([[${num}]],[[${pageInfo.range}]],[[${pageInfo.rangeSize}]]);" th:text="${num}"></a>
+                </li>
+            <td th:if="${pageInfo.isNext()}">
+                <li><a href="#" th:onclick="fn_next([[${pageInfo.page}]],[[${pageInfo.range}]], [[${pageInfo.rangeSize}]]);">Next</a></li>
+            </td>
+        </ul>
+    </div>
+
+    <div>
+        <div class="w100" style="padding-right:10px">
+            <select class="form-control form-control-sm" name="searchType" id="searchType">
+                <option value="title">제목</option>
+                <option value="Content">본문</option>
+                <option value="writer">작성자</option>
+            </select>
+        </div>
+        <div style="padding-right:10px">
+            <input type="text" class="form-control form-control-sm" name="keyword" id="keyword">
+        </div>
+        <div>
+            <button name="btnSearch" id="btnSearch">검색</button>
+        </div>
+    </div>
+
+</table>
+<br/>
+<br/>
+<br/>
+<br/>
+<div class="write"><a th:href="@{/board/getBoardForm}">글쓰기</a></div>
+</body>
+</html>
