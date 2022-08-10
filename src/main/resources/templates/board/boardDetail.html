@@ -128,7 +128,8 @@ function showReplyList(){
                  htmls += '<text>등록된 댓글이 없습니다.</text>';
                  $("#replyList").html(htmls);
             } else {
-            result = result.reverse();
+         <!--/*   result = result.reverse();  */-->
+            console.log(result)
                 $(result).each(function(i){
                     try{
                         if( result[i].parent === 0){
@@ -186,7 +187,6 @@ function showReplyList(){
                     }catch(ex){
                         console.log("reply runtime error >>>");
                     }
-
                 });
             }
         }
