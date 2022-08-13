@@ -127,7 +127,6 @@
         SET
             TITLE = #{title}
             , CONTENT = #{content}
-            , VIEW_CNT = #{viewCnt}
             , WRITER = #{writer}
             , REG_DATE = now()
         WHERE
